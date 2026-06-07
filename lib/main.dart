@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'features/tracker/ui/tracker_screen.dart';
+import 'features/home/ui/home_screen.dart';
 
 void main() {
   runApp(const AppIslamic());
@@ -17,7 +17,7 @@ class AppIslamic extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
         useMaterial3: true,
       ),
-      home: const TrackerScreen(),
+      home: const HomeScreen(),
     );
   }
 }
