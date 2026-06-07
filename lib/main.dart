@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
-import 'features/tracker/ui/tracker_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'features/home/ui/home_screen.dart';
 
 void main() {
-  runApp(const AppIslamic());
+  runApp(
+    const ProviderScope(
+      child: AppIslamic(),
+    ),
+  );
 }
 
 class AppIslamic extends StatelessWidget {
@@ -17,7 +22,7 @@ class AppIslamic extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
         useMaterial3: true,
       ),
-      home: const TrackerScreen(),
+      home: const HomeScreen(),
     );
   }
 }
