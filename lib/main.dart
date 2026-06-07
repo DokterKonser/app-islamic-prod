@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'features/tracker/ui/tracker_screen.dart';
+import 'features/home/ui/home_screen.dart';
 
 void main() {
   runApp(
@@ -19,10 +19,10 @@ class AppIslamic extends StatelessWidget {
       title: 'APP ISLAMIC',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.emerald),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
         useMaterial3: true,
       ),
-      home: const TrackerScreen(),
+      home: const HomeScreen(),
     );
   }
 }
