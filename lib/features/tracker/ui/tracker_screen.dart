@@ -1,45 +1,65 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/logic/database_helper.dart';
 
-class TrackerScreen extends StatefulWidget {
+class TrackerScreen extends ConsumerStatefulWidget {
   const TrackerScreen({super.key});
 
   @override
-  State<TrackerScreen> createState() => _TrackerScreenState();
+  ConsumerState<TrackerScreen> createState() => _TrackerScreenState();
 }
 
-class _TrackerScreenState extends State<TrackerScreen> {
-  final List<String> _prayers = ['Subuh', 'Dzuhur', 'Ashar', 'Maghrib', 'Isya'];
-  final Map<String, bool> _status = {};
+class _TrackerScreenState extends ConsumerState<TrackerScreen> {
+  final List<String> _prayers = ['Subuh', 'Dhuhur', 'Ashar', 'Maghrib', 'Isya'];
+  Map<String, bool> _trackerStatus = {};
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _loadTrackerData();
+  }
+
+  Future<void> _loadTrackerData() async {
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    final logs = await DatabaseHelper.instance.getLogsByDate(today);
+    
+    final Map<String, bool> status = {};
     for (var prayer in _prayers) {
-      _status[prayer] = false;
+      status[prayer] = logs.any((log) => log['name'] == prayer && log['status'] == 'Completed');
+    }
+
+    if (mounted) {
+      setState(() {
+        _trackerStatus = status;
+        _isLoading = false;
+      });
     }
   }
 
-  Future<void> _togglePrayer(String name, bool? value) async {
-    setState(() {
-      _status[name] = value ?? false;
-    });
+  Future<void> _togglePrayer(String prayer, bool? value) async {
+    if (value == null) return;
 
-    if (_status[name] == true) {
-      await DatabaseHelper.instance.database.then((db) {
-        db.insert('ibadah_logs', {
-          'type': 'Salah',
-          'name': name,
-          'status': 'Completed',
-          'performed_at': DateTime.now().toIso8601String(),
-          'metadata': '{}',
-        });
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    final now = DateTime.now().toIso8601String();
+
+    if (value) {
+      await DatabaseHelper.instance.insertLog({
+        'type': 'Salah',
+        'name': prayer,
+        'status': 'Completed',
+        'performed_at': now,
+        'intensity': 1,
+        'metadata': '{}',
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Alhamdulillah, $name selesai!')),
-        );
-      }
+    } else {
+      await DatabaseHelper.instance.deleteLog(prayer, today);
+    }
+
+    if (mounted) {
+      setState(() {
+        _trackerStatus[prayer] = value;
+      });
     }
   }
 
@@ -48,24 +68,51 @@ class _TrackerScreenState extends State<TrackerScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ibadah Tracker'),
-        backgroundColor: Colors.teal,
+        centerTitle: true,
+        backgroundColor: Colors.emerald,
+        foregroundColor: Colors.white,
       ),
-      body: ListView.builder(
-        itemCount: _prayers.length,
-        itemBuilder: (context, index) {
-          final prayer = _prayers[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: CheckboxListTile(
-              title: Text(prayer, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: const Text('Sudahkah Anda sholat?'),
-              value: _status[prayer],
-              activeColor: Colors.teal,
-              onChanged: (val) => _togglePrayer(prayer, val),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Daily Prayers - ${DateTime.now().toIso8601String().split('T')[0]}',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: _prayers.length,
+                      itemBuilder: (context, index) {
+                        final prayer = _prayers[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          elevation: 2,
+                          child: CheckboxListTile(
+                            title: Text(
+                              prayer,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            subtitle: const Text('Mark as completed'),
+                            value: _trackerStatus[prayer] ?? false,
+                            onChanged: (bool? value) => _togglePrayer(prayer, value),
+                            secondary: const Icon(Icons.mosque_outlined, color: Colors.emerald),
+                            activeColor: Colors.emerald,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          );
-        },
-      ),
     );
   }
 }

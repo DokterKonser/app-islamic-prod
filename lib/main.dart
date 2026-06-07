@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'features/tracker/ui/tracker_screen.dart';
 
 void main() {
-  runApp(const AppIslamic());
+  runApp(
+    const ProviderScope(
+      child: AppIslamic(),
+    ),
+  );
 }
 
 class AppIslamic extends StatelessWidget {
@@ -14,7 +19,7 @@ class AppIslamic extends StatelessWidget {
       title: 'APP ISLAMIC',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.emerald),
         useMaterial3: true,
       ),
       home: const TrackerScreen(),
