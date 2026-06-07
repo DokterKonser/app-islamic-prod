@@ -78,6 +78,31 @@ class DatabaseHelper {
     ''');
   }
 
+  // Helper methods for ibadah_logs
+  Future<int> insertLog(Map<String, dynamic> row) async {
+    Database db = await instance.database;
+    return await db.insert('ibadah_logs', row);
+  }
+
+  Future<List<Map<String, dynamic>>> getLogsByDate(String date) async {
+    Database db = await instance.database;
+    // date format: YYYY-MM-DD
+    return await db.query(
+      'ibadah_logs',
+      where: 'performed_at LIKE ?',
+      whereArgs: ['$date%'],
+    );
+  }
+
+  Future<int> deleteLog(String name, String date) async {
+    Database db = await instance.database;
+    return await db.delete(
+      'ibadah_logs',
+      where: 'name = ? AND performed_at LIKE ?',
+      whereArgs: [name, '$date%'],
+    );
+  }
+
   Future close() async {
     final db = await instance.database;
     db.close();
